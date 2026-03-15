@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Models;
 
 public class DeviceThreshold : BaseEntity
@@ -5,6 +7,8 @@ public class DeviceThreshold : BaseEntity
     public int Id { get; set; }
 
     public Guid DeviceId { get; set; }
+
+    [JsonIgnore]
     public Device Device { get; set; } = default!;
 
     public string SensorType { get; set; } = default!;  // "temperature"

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Models;
 
 public class Alert : BaseEntity
@@ -5,9 +7,13 @@ public class Alert : BaseEntity
     public long Id { get; set; }
 
     public Guid DeviceId { get; set; }
+
+    [JsonIgnore]
     public Device Device { get; set; } = default!;
 
     public long BatchId { get; set; }
+
+    [JsonIgnore]
     public ReadingBatch Batch { get; set; } = default!;
 
     public string SensorType { get; set; } = default!;  // "temperature"

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Models;
 
 public class SensorReading : BaseEntity
@@ -5,6 +7,8 @@ public class SensorReading : BaseEntity
     public long Id { get; set; }
 
     public long BatchId { get; set; }
+
+    [JsonIgnore]
     public ReadingBatch Batch { get; set; } = default!;
 
     public string SensorType { get; set; } = default!;  // "temperature" | "humidity" | "distance" | "vibration" | "light"

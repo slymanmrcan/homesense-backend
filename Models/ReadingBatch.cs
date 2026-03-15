@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Models;
 
 public class ReadingBatch : BaseEntity
@@ -5,6 +7,8 @@ public class ReadingBatch : BaseEntity
     public long Id { get; set; }
 
     public Guid DeviceId { get; set; }
+
+    [JsonIgnore]
     public Device Device { get; set; } = default!;
 
     public Guid BatchKey { get; set; }

@@ -1,15 +1,23 @@
 using HomeSense.Api.Data;
 using HomeSense.Api.Dtos;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 using Models;
 
 namespace HomeSense.Api.Services;
 
 public class DeviceService(AppDbContext db) : IDeviceService
 {
+    private static readonly Regex MacAddressRegex = new(
+        "^[0-9A-F]{2}(:[0-9A-F]{2}){5}$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     public async Task<Device> ResolveDeviceAsync(string macAddress, CancellationToken ct = default)
     {
         macAddress = NormalizeMacAddress(macAddress);
+
+        if (!IsValidMacAddress(macAddress))
+            throw new ArgumentException("macAddress must be in format AA:BB:CC:DD:EE:FF.", nameof(macAddress));
 
         var device = await db.Devices
             .FirstOrDefaultAsync(d => d.MacAddress == macAddress, ct);
@@ -41,6 +49,9 @@ public class DeviceService(AppDbContext db) : IDeviceService
             return Result<Device>.Fail(Error.Validation("macAddress is required."));
 
         var normalizedMacAddress = NormalizeMacAddress(dto.MacAddress);
+
+        if (!IsValidMacAddress(normalizedMacAddress))
+            return Result<Device>.Fail(Error.Validation("macAddress must be in format AA:BB:CC:DD:EE:FF."));
 
         var exists = await db.Devices
             .AnyAsync(d => d.MacAddress == normalizedMacAddress, ct);
@@ -125,5 +136,10 @@ public class DeviceService(AppDbContext db) : IDeviceService
     private static string NormalizeMacAddress(string macAddress)
     {
         return macAddress.Trim().Replace("-", ":").ToUpperInvariant();
+    }
+
+    private static bool IsValidMacAddress(string macAddress)
+    {
+        return MacAddressRegex.IsMatch(macAddress);
     }
 }
