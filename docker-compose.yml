@@ -10,6 +10,7 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__SqlServer: ${ConnectionStrings__SqlServer}
       DeviceIngest__MasterApiKey: ${DeviceIngest__MasterApiKey}
+      Cors__AllowedOrigins: ${Cors__AllowedOrigins}
     networks:
       - infra_net
     restart: unless-stopped

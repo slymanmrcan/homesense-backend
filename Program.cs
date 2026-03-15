@@ -15,6 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
 var connectionString = builder.Configuration.GetConnectionString("SqlServer");
+var allowedOriginsSetting = builder.Configuration["Cors:AllowedOrigins"];
+var allowedOrigins = string.IsNullOrWhiteSpace(allowedOriginsSetting)
+    ? ["http://localhost:3000", "https://iot.is-app.com"]
+    : allowedOriginsSetting.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
@@ -23,6 +27,16 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 builder.Services.AddRateLimiter(options =>
 {
     // Tüm API için global limit
@@ -102,6 +116,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+app.UseCors("Frontend");
 
 app.UseRateLimiter();
 
