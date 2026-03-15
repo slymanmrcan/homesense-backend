@@ -1,0 +1,48 @@
+namespace HomeSense.Api.Middleware;
+
+public class ApiKeyMiddleware
+{
+    private readonly RequestDelegate _next;
+    private const string HeaderName = "X-Api-Key";
+
+    public ApiKeyMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
+    public async Task InvokeAsync(HttpContext context, IConfiguration configuration)
+    {
+        var path = context.Request.Path.Value ?? string.Empty;
+
+        if (path.StartsWith("/swagger") || path.StartsWith("/api/dashboard") || path.StartsWith("/api/devices"))
+        {
+            await _next(context);
+            return;
+        }
+
+        var configuredApiKey = configuration["DeviceIngest:MasterApiKey"];
+
+        if (string.IsNullOrWhiteSpace(configuredApiKey))
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            await context.Response.WriteAsJsonAsync(new { message = "API key not configured." });
+            return;
+        }
+
+        if (!context.Request.Headers.TryGetValue(HeaderName, out var incomingApiKey))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsJsonAsync(new { message = "Missing API key." });
+            return;
+        }
+
+        if (!string.Equals(incomingApiKey.FirstOrDefault(), configuredApiKey, StringComparison.Ordinal))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsJsonAsync(new { message = "Invalid API key." });
+            return;
+        }
+
+        await _next(context);
+    }
+}

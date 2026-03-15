@@ -1,0 +1,19 @@
+services:
+  homesense-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__SqlServer: ${ConnectionStrings__SqlServer}
+      DeviceIngest__MasterApiKey: ${DeviceIngest__MasterApiKey}
+    networks:
+      - infra_net
+    restart: unless-stopped
+
+networks:
+  infra_net:
+    external: true
